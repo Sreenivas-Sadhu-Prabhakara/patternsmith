@@ -1,0 +1,606 @@
+---
+const base = import.meta.env.BASE_URL;
+const withBase = (p) => (base.endsWith('/') ? base.slice(0, -1) : base) + p;
+const site = 'https://sreenivas-sadhu-prabhakara.github.io';
+const canonical = site + withBase('/');
+const title = 'patternsmith — regex explainer, tester & generator in plain English';
+const description =
+  'A regex tool that speaks plain English both ways: explain any regex token by token, test it live with match highlighting, or build a regex from your intent. 100% in your browser, nothing leaves the device.';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; base-uri 'self'; form-action 'none'; object-src 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta
+      name="keywords"
+      content="regex explainer, regex tester, explain this regex, regex generator, build a regex for email, regular expression, regex cheatsheet"
+    />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="icon" href={withBase('/favicon.ico')} sizes="any" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#12161f" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: 'patternsmith',
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'Any (web browser)',
+      description,
+      url: canonical,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    })} />
+
+    <script>
+      import '../scripts/app.js';
+    </script>
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to the tool</a>
+
+    <header class="masthead">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 128 128" aria-hidden="true" width="40" height="40">
+          <path d="M28 60 h58 l-9 15 h-30 a11 11 0 0 1 -11 -11 z" fill="#f0742a" />
+          <path d="M86 60 l16 -7 -5 14 z" fill="#f0742a" />
+          <g fill="none" stroke="#f0742a" stroke-width="7" stroke-linecap="round">
+            <path d="M50 75 v20 M74 75 v20" />
+            <path d="M38 98 h48" />
+          </g>
+          <path d="M98 28 l4 11 11 4 -11 4 -4 11 -4 -11 -11 -4 11 -4 z" fill="#5cc8d8" />
+        </svg>
+        <div class="wordmark">
+          <span class="name">patternsmith</span>
+          <span class="tag">regex in plain English — both ways</span>
+        </div>
+      </div>
+      <p class="privacy" title="Nothing you type is ever sent anywhere.">
+        <span class="dot" aria-hidden="true"></span> runs entirely on your device
+      </p>
+    </header>
+
+    <nav class="modes" aria-label="Tool mode">
+      <div class="tabs" role="tablist" aria-label="Choose a mode">
+        <button id="tab-explain" class="tab" role="tab" aria-selected="true" aria-controls="panel-explain">
+          <span class="tab-k">Explain</span>
+          <span class="tab-sub">regex &rarr; English</span>
+        </button>
+        <button id="tab-build" class="tab" role="tab" aria-selected="false" aria-controls="panel-build">
+          <span class="tab-k">Build</span>
+          <span class="tab-sub">intent &rarr; regex</span>
+        </button>
+      </div>
+    </nav>
+
+    <main id="main">
+      <!-- Shared pattern bar -->
+      <section class="forge" aria-label="Pattern">
+        <div class="pat-line">
+          <span class="slash" aria-hidden="true">/</span>
+          <input
+            id="pattern"
+            class="pattern-input tnum"
+            type="text"
+            spellcheck="false"
+            autocapitalize="off"
+            autocomplete="off"
+            autocorrect="off"
+            aria-label="Regular expression pattern"
+            placeholder="type or paste a regex…"
+          />
+          <span class="slash" aria-hidden="true">/</span>
+          <input
+            id="flags-input"
+            class="flags-input tnum"
+            type="text"
+            spellcheck="false"
+            autocomplete="off"
+            aria-label="Regex flags"
+            placeholder="flags"
+            maxlength="7"
+          />
+          <div class="pat-actions">
+            <button id="copy-pattern" class="ghost-btn" type="button">Copy</button>
+            <button id="clear-pattern" class="ghost-btn" type="button">Clear</button>
+          </div>
+        </div>
+        <div id="compile-status" class="compile-status" role="status" aria-live="polite"></div>
+        <div class="flags-panel">
+          <div id="flag-row" class="flag-row" role="group" aria-label="Toggle flags"></div>
+          <ul id="flag-desc" class="flag-desc"></ul>
+        </div>
+      </section>
+
+      <!-- EXPLAIN panel -->
+      <section id="panel-explain" role="tabpanel" aria-labelledby="tab-explain" class="panel">
+        <div class="col-main">
+          <div class="card">
+            <div class="card-head">
+              <h2>Plain-English breakdown</h2>
+              <p id="seg-hint" class="seg-hint" aria-live="polite"></p>
+            </div>
+            <p id="summary" class="summary tnum"></p>
+            <div id="breakdown" class="breakdown"></div>
+          </div>
+        </div>
+        <aside class="col-side">
+          <div class="card">
+            <div class="card-head">
+              <h2>Cheatsheet</h2>
+            </div>
+            <div id="cheatsheet" class="cheatsheet"></div>
+          </div>
+        </aside>
+      </section>
+
+      <!-- BUILD panel -->
+      <section id="panel-build" role="tabpanel" aria-labelledby="tab-build" class="panel" hidden>
+        <div class="col-main">
+          <div class="card">
+            <div class="card-head">
+              <h2>Common intents</h2>
+              <p class="card-note">One click drops in a whole, working pattern — and loads a sample to test it on.</p>
+            </div>
+            <div id="intent-grid" class="intent-grid"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h2>Building blocks</h2>
+              <p class="card-note">Each block <em>appends</em> to the pattern above and narrates what it added.</p>
+            </div>
+            <label class="auto-sample">
+              <input id="build-sample-auto" type="checkbox" checked />
+              <span>replace sample text when I load an intent</span>
+            </label>
+            <div id="block-grid" class="block-grid"></div>
+          </div>
+        </div>
+        <aside class="col-side">
+          <div class="card">
+            <div class="card-head">
+              <h2>Build log</h2>
+            </div>
+            <ul id="narration" class="narration" aria-live="polite"></ul>
+          </div>
+        </aside>
+      </section>
+
+      <!-- Live tester (shared, always shown) -->
+      <section class="tester card" aria-label="Live tester">
+        <div class="card-head tester-head">
+          <h2>Live tester</h2>
+          <div class="tester-meta">
+            <span class="count-pill tnum">
+              <strong id="match-count">0</strong>
+              <span class="count-label">matches</span>
+            </span>
+            <button id="replace-toggle" class="ghost-btn" type="button" aria-expanded="false" aria-controls="replace-wrap">
+              Replace&hellip;
+            </button>
+          </div>
+        </div>
+
+        <div class="tester-body">
+          <div class="sample-stack">
+            <label class="field-label" for="sample">Sample text</label>
+            <div class="sample-wrap">
+              <div id="highlight" class="highlight tnum" aria-hidden="true"></div>
+              <textarea
+                id="sample"
+                class="sample tnum"
+                spellcheck="false"
+                aria-label="Sample text to test against"
+                placeholder="paste some text to test your pattern against…"
+              ></textarea>
+            </div>
+          </div>
+
+          <div id="replace-wrap" class="replace-wrap" hidden>
+            <label class="field-label" for="replace-input">Replace with (supports $1, $&amp;, $&lt;name&gt;)</label>
+            <input id="replace-input" class="replace-input tnum" type="text" spellcheck="false" autocomplete="off" placeholder="$1" />
+            <label class="field-label">Result</label>
+            <pre id="replace-out" class="replace-out tnum"></pre>
+          </div>
+
+          <div class="groups-stack">
+            <h3 class="field-label">Captured groups</h3>
+            <div id="groups-table" class="groups-table"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>
+        <strong>patternsmith</strong> · native <code>RegExp</code> only · no network, no tracking · state lives in the URL so you can share a link.
+      </p>
+      <p class="foot-sub">Matching runs behind a time cap so a pathological pattern can never hang the page.</p>
+    </footer>
+
+    <style is:global>
+      :root {
+        --bg: #0e1117;
+        --panel: #12161f;
+        --panel-2: #171c28;
+        --line: #262d3d;
+        --ink: #e6e9ef;
+        --ink-dim: #98a1b3;
+        --ink-faint: #6b7385;
+        --accent: #f0742a;   /* forge orange */
+        --accent-2: #5cc8d8; /* quench teal */
+        --ok: #56b877;
+        --warn: #e0a53a;
+        --err: #e8663f;
+        --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+        --radius: 10px;
+        --shadow: 0 1px 0 rgba(255,255,255,.02) inset, 0 2px 12px rgba(0,0,0,.35);
+      }
+
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background:
+          radial-gradient(1200px 500px at 85% -10%, rgba(240,116,42,.10), transparent 60%),
+          radial-gradient(900px 500px at 5% 0%, rgba(92,200,216,.07), transparent 55%),
+          var(--bg);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 15px;
+        line-height: 1.5;
+        font-variant-numeric: tabular-nums;
+      }
+      .tnum { font-variant-numeric: tabular-nums; }
+
+      code { font-family: var(--mono); }
+      h1, h2, h3, h4 { margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+      p { margin: 0; }
+
+      a { color: var(--accent-2); }
+      .skip {
+        position: absolute; left: -9999px; top: 0;
+        background: var(--accent); color: #17110a; padding: .5rem .8rem; z-index: 20; border-radius: 0 0 8px 0;
+      }
+      .skip:focus { left: 0; }
+
+      :focus-visible {
+        outline: 2px solid var(--accent-2);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+
+      /* ---- masthead ---- */
+      .masthead {
+        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        max-width: 1180px; margin: 0 auto; padding: 1.1rem 1.25rem .4rem;
+        flex-wrap: wrap;
+      }
+      .brand { display: flex; align-items: center; gap: .75rem; }
+      .logo { flex: none; filter: drop-shadow(0 2px 6px rgba(240,116,42,.25)); }
+      .wordmark { display: flex; flex-direction: column; line-height: 1.15; }
+      .name {
+        font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em;
+        color: var(--ink);
+      }
+      .name::first-letter { color: var(--accent); }
+      .tag { color: var(--ink-dim); font-size: .82rem; }
+      .privacy {
+        display: inline-flex; align-items: center; gap: .5rem;
+        color: var(--ink-dim); font-size: .8rem;
+        border: 1px solid var(--line); border-radius: 999px; padding: .3rem .7rem;
+        background: var(--panel);
+      }
+      .privacy .dot {
+        width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+        box-shadow: 0 0 0 3px rgba(86,184,119,.18);
+      }
+
+      /* ---- mode tabs ---- */
+      .modes { max-width: 1180px; margin: 0 auto; padding: .4rem 1.25rem 0; }
+      .tabs {
+        display: inline-flex; gap: .3rem; padding: .3rem;
+        background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      }
+      .tab {
+        display: flex; flex-direction: column; align-items: flex-start;
+        gap: 0; padding: .5rem .95rem; border: 0; border-radius: 9px;
+        background: transparent; color: var(--ink-dim); cursor: pointer;
+        font-family: var(--mono); text-align: left; transition: background .15s, color .15s;
+      }
+      .tab:hover { color: var(--ink); background: var(--panel-2); }
+      .tab[aria-selected="true"] {
+        background: linear-gradient(180deg, rgba(240,116,42,.18), rgba(240,116,42,.06));
+        color: var(--ink);
+        box-shadow: inset 0 0 0 1px rgba(240,116,42,.45);
+      }
+      .tab-k { font-weight: 700; font-size: 1rem; }
+      .tab-sub { font-size: .74rem; color: var(--ink-faint); }
+      .tab[aria-selected="true"] .tab-sub { color: var(--accent); }
+
+      /* ---- layout ---- */
+      main { max-width: 1180px; margin: 0 auto; padding: 1rem 1.25rem 2rem; display: grid; gap: 1rem; }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 1rem 1.1rem 1.15rem;
+      }
+      .card-head { margin-bottom: .7rem; }
+      .card-head h2 { font-size: .95rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-dim); }
+      .card-note { color: var(--ink-faint); font-size: .82rem; margin-top: .2rem; }
+
+      /* ---- pattern forge bar ---- */
+      .forge {
+        background: linear-gradient(180deg, var(--panel-2), var(--panel));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: .85rem 1rem 1rem;
+        box-shadow: var(--shadow);
+      }
+      .pat-line { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+      .slash { color: var(--accent); font-size: 1.5rem; font-weight: 700; user-select: none; }
+      .pattern-input {
+        flex: 1 1 320px; min-width: 180px;
+        background: #0b0e14; color: var(--ink);
+        border: 1px solid var(--line); border-radius: 8px;
+        padding: .6rem .7rem; font-family: var(--mono); font-size: 1.05rem;
+        caret-color: var(--accent);
+      }
+      .pattern-input.flash { animation: flash .5s ease; }
+      @keyframes flash {
+        0% { box-shadow: 0 0 0 0 rgba(240,116,42,.55); border-color: var(--accent); }
+        100% { box-shadow: 0 0 0 6px rgba(240,116,42,0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pattern-input.flash { animation: none; }
+        * { scroll-behavior: auto !important; }
+      }
+      .flags-input {
+        flex: 0 0 84px; width: 84px;
+        background: #0b0e14; color: var(--accent-2);
+        border: 1px solid var(--line); border-radius: 8px;
+        padding: .6rem .5rem; font-family: var(--mono); font-size: 1.05rem; text-align: center;
+      }
+      .pat-actions { display: inline-flex; gap: .35rem; margin-left: auto; }
+      .ghost-btn {
+        background: var(--panel-2); color: var(--ink-dim);
+        border: 1px solid var(--line); border-radius: 8px;
+        padding: .5rem .75rem; cursor: pointer; font-family: var(--mono); font-size: .82rem;
+        transition: color .15s, border-color .15s, background .15s;
+      }
+      .ghost-btn:hover { color: var(--ink); border-color: var(--accent); }
+      .ghost-btn.done { color: var(--ok); border-color: var(--ok); }
+
+      .compile-status { min-height: 1.1rem; margin-top: .55rem; font-size: .82rem; color: var(--ink-faint); }
+      .compile-status.ok { color: var(--ok); }
+      .compile-status.warn { color: var(--warn); }
+      .compile-status.err { color: var(--err); }
+
+      .flags-panel { display: flex; gap: 1rem; align-items: flex-start; margin-top: .7rem; flex-wrap: wrap; }
+      .flag-row { display: inline-flex; gap: .3rem; }
+      .flag {
+        width: 34px; height: 34px; border-radius: 8px;
+        border: 1px solid var(--line); background: #0b0e14; color: var(--ink-faint);
+        cursor: pointer; font-family: var(--mono); font-size: 1rem; font-weight: 700;
+        transition: all .12s;
+      }
+      .flag:hover { color: var(--ink); border-color: var(--accent-2); }
+      .flag.on {
+        color: #0b0e14; background: var(--accent-2); border-color: var(--accent-2);
+        box-shadow: 0 0 0 3px rgba(92,200,216,.18);
+      }
+      .flag-desc { list-style: none; margin: 0; padding: 0; font-size: .8rem; color: var(--ink-dim); flex: 1 1 240px; }
+      .flag-desc li { margin: .1rem 0; }
+      .flag-desc code { color: var(--accent-2); }
+
+      /* ---- panels: two-column ---- */
+      .panel { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1rem; align-items: start; }
+      .col-main { display: grid; gap: 1rem; min-width: 0; }
+      .col-side { display: grid; gap: 1rem; }
+
+      /* ---- explain: summary + chips + list ---- */
+      .summary {
+        color: var(--ink); font-size: .92rem; margin-bottom: .8rem;
+        padding: .55rem .7rem; border-left: 3px solid var(--accent);
+        background: var(--panel-2); border-radius: 0 8px 8px 0;
+      }
+      .summary:empty { display: none; }
+      .seg-hint { color: var(--accent-2); font-size: .8rem; min-height: 1rem; }
+
+      .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+      .chip {
+        display: inline-flex; flex-direction: column; align-items: center; gap: .1rem;
+        padding: .35rem .5rem; border-radius: 8px; cursor: default;
+        border: 1px solid var(--line); background: var(--panel-2);
+        transition: transform .1s, box-shadow .1s;
+      }
+      .chip:hover, .chip:focus-visible { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,.35); }
+      .chip-src { font-size: .95rem; color: var(--ink); }
+      .chip-label { font-size: .68rem; color: var(--ink-faint); white-space: nowrap; }
+
+      /* color-blind-safe: pair hue with a left border weight/shape via kinds */
+      .kind-anchor { border-color: #7c86ff; }
+      .kind-anchor .chip-src, .kind-anchor code { color: #a6adff; }
+      .kind-class { border-color: var(--accent-2); }
+      .kind-class .chip-src, .kind-class code { color: var(--accent-2); }
+      .kind-quantifier { border-color: var(--accent); }
+      .kind-quantifier .chip-src, .kind-quantifier code { color: var(--accent); }
+      .kind-capture { border-color: #d98adf; }
+      .kind-capture .chip-src, .kind-capture code { color: #e2a3e8; }
+      .kind-group { border-color: #8f9bb3; }
+      .kind-alt { border-color: var(--warn); }
+      .kind-alt .chip-src, .kind-alt code { color: var(--warn); }
+      .kind-backref { border-color: #63c8a0; }
+      .kind-backref .chip-src, .kind-backref code { color: #7fd9b6; }
+      .kind-literal { border-color: var(--line); }
+
+      .seg-list { display: grid; grid-template-columns: max-content 1fr; gap: .3rem .9rem; margin: 0; }
+      .seg-term {
+        display: inline-flex; align-items: center; gap: .5rem; align-self: start;
+        padding: .2rem .45rem; border-radius: 6px; border-left: 3px solid var(--line);
+        background: var(--panel-2);
+      }
+      .seg-term code { font-size: .9rem; white-space: pre; }
+      .seg-kind { font-size: .64rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; }
+      .seg-desc { color: var(--ink-dim); font-size: .86rem; align-self: start; padding-top: .25rem; }
+      .seg-desc strong { color: var(--ink); }
+
+      /* ---- cheatsheet ---- */
+      .cheatsheet { display: grid; gap: .85rem; }
+      .cheat-title { font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); margin-bottom: .3rem; }
+      .cheat-rows { display: grid; grid-template-columns: max-content 1fr; gap: .18rem .7rem; margin: 0; }
+      .cheat-rows dt code { color: var(--accent-2); font-size: .85rem; white-space: pre; }
+      .cheat-rows dd { margin: 0; color: var(--ink-dim); font-size: .8rem; }
+
+      /* ---- build: intents & blocks ---- */
+      .intent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .5rem; }
+      .intent {
+        display: flex; flex-direction: column; gap: .25rem; text-align: left;
+        padding: .6rem .7rem; border-radius: 9px; cursor: pointer;
+        border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+        transition: border-color .12s, transform .1s, box-shadow .12s;
+      }
+      .intent:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+      .intent-name { font-weight: 650; font-size: .88rem; }
+      .intent-eg { font-size: .74rem; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+      .block-group { margin-top: .6rem; }
+      .block-group:first-child { margin-top: 0; }
+      .block-group-title { font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-faint); margin-bottom: .35rem; }
+      .block-row { display: flex; flex-wrap: wrap; gap: .35rem; }
+      .block {
+        padding: .38rem .6rem; border-radius: 999px; cursor: pointer; font-size: .8rem;
+        border: 1px solid var(--line); background: #0b0e14; color: var(--ink-dim);
+        font-family: var(--mono); transition: all .12s;
+      }
+      .block:hover { color: #0b0e14; background: var(--accent-2); border-color: var(--accent-2); }
+
+      .auto-sample { display: inline-flex; align-items: center; gap: .45rem; font-size: .78rem; color: var(--ink-dim); margin-bottom: .7rem; cursor: pointer; }
+      .auto-sample input { accent-color: var(--accent); }
+
+      .narration { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
+      .narr-line {
+        font-size: .8rem; color: var(--ink-dim);
+        padding: .4rem .55rem; border-radius: 7px; background: var(--panel-2);
+        border-left: 3px solid var(--accent-2);
+        animation: slidein .25s ease;
+      }
+      @keyframes slidein { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+      @media (prefers-reduced-motion: reduce) { .narr-line { animation: none; } }
+      .narration:empty::after { content: "Load an intent or add a block to see the build narrated here."; color: var(--ink-faint); font-size: .8rem; }
+
+      /* ---- live tester ---- */
+      .tester { margin-top: 0; }
+      .tester-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+      .tester-meta { display: inline-flex; align-items: center; gap: .6rem; }
+      .count-pill {
+        display: inline-flex; align-items: baseline; gap: .3rem;
+        padding: .3rem .6rem; border-radius: 999px;
+        border: 1px solid var(--line); background: var(--panel-2);
+      }
+      .count-pill strong { color: var(--accent); font-size: 1.05rem; }
+      .count-label { color: var(--ink-faint); font-size: .75rem; }
+
+      .tester-body { display: grid; gap: 1rem; }
+      .field-label { display: block; font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-faint); margin-bottom: .35rem; }
+
+      .sample-wrap { position: relative; }
+      .highlight, .sample {
+        margin: 0;
+        font-family: var(--mono); font-size: .95rem; line-height: 1.55;
+        padding: .7rem .8rem;
+        white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere;
+      }
+      .highlight {
+        position: absolute; inset: 0; pointer-events: none; color: transparent;
+        border: 1px solid transparent; overflow: hidden;
+      }
+      .sample {
+        position: relative; width: 100%; min-height: 130px; resize: vertical;
+        background: #0b0e14; color: var(--ink);
+        border: 1px solid var(--line); border-radius: 8px;
+        caret-color: var(--accent);
+      }
+      mark.hl {
+        border-radius: 3px; color: transparent;
+        background: rgba(240,116,42,.32);
+        box-shadow: 0 0 0 1px rgba(240,116,42,.6);
+      }
+      mark.hl-1 {
+        background: rgba(92,200,216,.30);
+        box-shadow: 0 0 0 1px rgba(92,200,216,.6);
+      }
+      mark.zero { box-shadow: 0 0 0 1.5px var(--accent); padding: 0 1px; }
+
+      .replace-wrap { display: grid; gap: .35rem; }
+      .replace-input {
+        background: #0b0e14; color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+        padding: .55rem .7rem; font-family: var(--mono); font-size: .95rem;
+      }
+      .replace-out {
+        margin: 0; padding: .7rem .8rem; border-radius: 8px;
+        background: var(--panel-2); border: 1px dashed var(--line); color: var(--ink);
+        white-space: pre-wrap; word-break: break-word; min-height: 2.5rem; font-size: .92rem;
+      }
+
+      .groups-table { overflow-x: auto; }
+      table.groups { border-collapse: collapse; width: 100%; font-size: .85rem; }
+      table.groups th, table.groups td {
+        text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      table.groups thead th {
+        color: var(--ink-faint); font-weight: 600; font-size: .72rem;
+        text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0;
+        background: var(--panel);
+      }
+      table.groups td.num { color: var(--ink-faint); }
+      table.groups code { color: var(--accent-2); }
+      table.groups td .muted { color: var(--ink-faint); }
+      .named-note { margin-top: .5rem; color: var(--ink-dim); }
+      .named-note code { color: #e2a3e8; }
+
+      .muted { color: var(--ink-faint); }
+      .small { font-size: .8rem; }
+
+      /* ---- footer ---- */
+      .foot {
+        max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem;
+        color: var(--ink-faint); font-size: .8rem; border-top: 1px solid var(--line);
+      }
+      .foot code { color: var(--accent-2); }
+      .foot strong { color: var(--ink-dim); }
+      .foot-sub { margin-top: .3rem; }
+
+      /* ---- responsive ---- */
+      @media (max-width: 860px) {
+        .panel { grid-template-columns: 1fr; }
+        .masthead { padding-bottom: .6rem; }
+        .privacy { order: 3; }
+      }
+      @media (max-width: 520px) {
+        body { font-size: 14px; }
+        .pat-actions { margin-left: 0; width: 100%; }
+        .pat-actions .ghost-btn { flex: 1; }
+        .tester-head { flex-wrap: wrap; }
+      }
+    </style>
+  </body>
+</html>

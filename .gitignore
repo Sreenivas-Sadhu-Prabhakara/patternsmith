@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# intermediate OG/icon renders (sources are assets/*.html; finished PNGs live in public/)
+assets/*.png

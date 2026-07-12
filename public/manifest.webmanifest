@@ -1,0 +1,26 @@
+{
+  "name": "patternsmith — regex in plain English",
+  "short_name": "patternsmith",
+  "description": "Explain any regex token by token, test it live, or build one from your intent. Runs entirely in your browser.",
+  "start_url": "/patternsmith/",
+  "scope": "/patternsmith/",
+  "display": "standalone",
+  "theme_color": "#12161f",
+  "background_color": "#0e1117",
+  "lang": "en",
+  "categories": ["developer", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "/patternsmith/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/patternsmith/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

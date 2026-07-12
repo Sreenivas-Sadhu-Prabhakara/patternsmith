@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 512px; height: 512px; }
+  body { background: #0e1117; }
+  /* The mark fills a 512 canvas. The anvil + spark are kept within a
+     centered ~78% safe zone so the maskable 192/512 crops never clip. */
+  .wrap { width: 512px; height: 512px; display: grid; place-items: center; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <svg viewBox="0 0 512 512" width="512" height="512" aria-hidden="true">
+      <defs>
+        <radialGradient id="bg" cx="72%" cy="20%" r="90%">
+          <stop offset="0%" stop-color="#1b2130"/>
+          <stop offset="55%" stop-color="#12161f"/>
+          <stop offset="100%" stop-color="#0c0f16"/>
+        </radialGradient>
+        <linearGradient id="anvil" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ff8a44"/>
+          <stop offset="100%" stop-color="#e5641c"/>
+        </linearGradient>
+      </defs>
+      <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+      <!-- subtle forge glow behind the anvil -->
+      <circle cx="256" cy="300" r="150" fill="#f0742a" opacity="0.10"/>
+
+      <!-- anvil, scaled up from the 128 mark (x4, nudged into safe zone) -->
+      <g transform="translate(6,26) scale(3.6)">
+        <path d="M28 60 h58 l-9 15 h-30 a11 11 0 0 1 -11 -11 z" fill="url(#anvil)"/>
+        <path d="M86 60 l16 -7 -5 14 z" fill="url(#anvil)"/>
+        <g fill="none" stroke="#f0742a" stroke-width="7" stroke-linecap="round">
+          <path d="M50 75 v20 M74 75 v20"/>
+          <path d="M38 98 h48"/>
+        </g>
+      </g>
+
+      <!-- quench spark, upper right -->
+      <path d="M372 96 l16 44 44 16 -44 16 -16 44 -16 -44 -44 -16 44 -16 z" fill="#5cc8d8"/>
+    </svg>
+  </div>
+</body>
+</html>

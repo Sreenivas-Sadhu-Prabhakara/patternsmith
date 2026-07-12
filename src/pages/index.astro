@@ -3,9 +3,38 @@ const base = import.meta.env.BASE_URL;
 const withBase = (p) => (base.endsWith('/') ? base.slice(0, -1) : base) + p;
 const site = 'https://sreenivas-sadhu-prabhakara.github.io';
 const canonical = site + withBase('/');
-const title = 'patternsmith — regex explainer, tester & generator in plain English';
+const ogImage = site + withBase('/og.png');
+const title = 'Patternsmith — Regex Explainer & Tester in Plain English';
 const description =
-  'A regex tool that speaks plain English both ways: explain any regex token by token, test it live with match highlighting, or build a regex from your intent. 100% in your browser, nothing leaves the device.';
+  'Explain any regex in plain English token by token, test it live with match highlighting, or build one from your intent. Free and runs in your browser.';
+
+// Real long-tail Q&As for the FAQPage — questions people actually search.
+const faqs = [
+  {
+    q: 'How do I read or explain a regular expression I do not understand?',
+    a: 'Paste the pattern into patternsmith and it breaks the regex down token by token in plain English — anchors, character classes, quantifiers, groups, alternation, backreferences and lookaround are each labelled, with a one-line summary of the whole thing.',
+  },
+  {
+    q: 'Is there a regex tester that shows matches and capture groups as I type?',
+    a: 'Yes. The live tester highlights every match in your sample text as you type, counts the matches, fills a captured-groups table (numbered and named), and previews a replace-with result. Toggle the g, i, m, s and u flags to see how they change the result.',
+  },
+  {
+    q: 'How do I build a regex for an email, URL, date or phone number?',
+    a: 'Open the Build tab and click a ready-made intent (email, URL, IPv4, ISO date, 24-hour time, phone, hex colour, slug, integer, decimal, UUID and more). It drops in a working pattern, loads a sample to test it on, and narrates what it added. Composable blocks let you extend it.',
+  },
+  {
+    q: 'Is patternsmith safe to paste sensitive text into?',
+    a: 'Yes. It is 100% client-side and uses your browser native RegExp only. A strict Content-Security-Policy with connect-src none is enforced, so nothing you type is ever sent over the network. Your pattern and sample stay on your device.',
+  },
+  {
+    q: 'Can a bad regex freeze the page like it does elsewhere?',
+    a: 'No. Matching runs in a Web Worker behind a wall-clock time cap. If a pathological, catastrophic-backtracking pattern (such as (a+)+$) runs too long, the worker is terminated and you get a friendly "too slow" message instead of a frozen tab.',
+  },
+  {
+    q: 'Which regex flavour and flags does patternsmith support?',
+    a: 'It targets the JavaScript / ECMAScript regex flavour, matching exactly what your browser runs. All standard flags are supported: g (global), i (ignore case), m (multiline), s (dotAll), u (unicode) and y (sticky), each with a plain-English description.',
+  },
+];
 ---
 
 <html lang="en">
@@ -25,24 +54,57 @@ const description =
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
     <link rel="icon" href={withBase('/favicon.ico')} sizes="any" />
+    <link rel="apple-touch-icon" sizes="180x180" href={withBase('/apple-touch-icon.png')} />
+    <link rel="manifest" href={withBase('/manifest.webmanifest')} />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#12161f" />
+    <meta name="application-name" content="patternsmith" />
+    <meta name="apple-mobile-web-app-title" content="patternsmith" />
 
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="patternsmith" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="patternsmith — a regex being forged into a plain-English explanation on an anvil" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
+      '@type': 'WebApplication',
       name: 'patternsmith',
       applicationCategory: 'DeveloperApplication',
-      operatingSystem: 'Any (web browser)',
+      operatingSystem: 'Any (modern web browser)',
+      browserRequirements: 'Requires JavaScript.',
       description,
       url: canonical,
+      image: ogImage,
+      inLanguage: 'en',
+      isAccessibleForFree: true,
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      featureList: [
+        'Explain a regex in plain English, token by token',
+        'Live match highlighting and captured-groups table',
+        'Build a regex from a named intent (email, URL, date, and more)',
+        'Replace-with preview and g/i/m/s/u/y flag toggles',
+        'Runs entirely client-side with a strict Content-Security-Policy',
+      ],
+    })} />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
     })} />
 
     <script>
@@ -230,6 +292,10 @@ const description =
         <strong>patternsmith</strong> · native <code>RegExp</code> only · no network, no tracking · state lives in the URL so you can share a link.
       </p>
       <p class="foot-sub">Matching runs behind a time cap so a pathological pattern can never hang the page.</p>
+      <p class="foot-sub disclaimer">
+        Provided “as is”, without warranty of any kind. Verify every generated or explained pattern before you rely on it — the author is not liable for any damages arising from its use.
+        <span class="foot-meta">MIT-licensed · © 2026 Sreenivas Sadhu Prabhakara</span>
+      </p>
     </footer>
 
     <style is:global>
@@ -588,6 +654,8 @@ const description =
       .foot code { color: var(--accent-2); }
       .foot strong { color: var(--ink-dim); }
       .foot-sub { margin-top: .3rem; }
+      .foot .disclaimer { margin-top: .8rem; max-width: 62ch; color: var(--ink-faint); }
+      .foot .foot-meta { display: block; margin-top: .35rem; color: var(--ink-faint); opacity: .85; }
 
       /* ---- responsive ---- */
       @media (max-width: 860px) {
